@@ -7,9 +7,19 @@
   </head>
 
   <body>
+
+    <input type='file' id='file-input' />
+
     <script type="module">
       import { Client } from './lib/muxado-js/index.js';
       import { Server, ServeMux } from './lib/http-js/index.js';
+
+      let file;
+
+      const fileInput = document.getElementById('file-input');
+      fileInput.addEventListener('change', (evt) => {
+        file = fileInput.files[0];
+      });
 
       const session = new Client({
         serverDomain: "anderspitman.net",
@@ -21,30 +31,17 @@
         handler: mux,
       });
 
-      const enc = new TextEncoder('utf8');
-      const CHUNK_LEN = 32*1024;
-      const NCHUNKS = 10000;
-      let chunkStr = "";
-      for (let i = 0; i < CHUNK_LEN; i++ ) {
-        chunkStr += "9";
-      }
-      const chunk = enc.encode(chunkStr);
-
-      mux.handleFunc("/", async (w, r) => {
-        console.log(w, r);
-
-        w.headers['Content-Length'] = `${NCHUNKS*chunk.length}`;
-
-        for (let i = 0; i < NCHUNKS; i++) {
-          try {
-            await w.write(chunk);
-          }
-          catch (e) {
-            console.error("write failed, other side may have cancelled", e);
-            break;
-          }
+      mux.handleFunc("/file", async (w, r) => {
+        if (file) {
+          w.headers['Content-Length'] = file.size;
+          await file.stream().pipeTo(await w.getWritableStream());
+        }
+        else {
+          console.error("No file selected");
         }
       });
+
+      const enc = new TextEncoder('utf8');
 
       mux.handleFunc("/og", async (w, r) => {
         w.headers = {
