@@ -53,9 +53,12 @@
 
         const file = files[filename];
 
+        let statusCode = 200;
+
         if (file) {
 
           let sendFile = file;
+          const contentType = file.type;
 
           if (r.headers.range) {
             const range = parseRangeHeader(r.headers.range);
@@ -63,20 +66,27 @@
 
             if (range.end) {
               sendFile = file.slice(range.start, range.end + 1);
+              w.headers['Content-Range'] = `bytes ${range.start}-${range.end}/${file.size}`;
             }
             else {
               sendFile = file.slice(range.start);
+              w.headers['Content-Range'] = `bytes ${range.start}-${file.size - 1}/${file.size}`;
             }
+
+            statusCode = 206;
           }
+
+          w.headers['Accept-Ranges'] = 'bytes';
+          w.headers['Content-Type'] = contentType;
+          w.headers['Content-Length'] = sendFile.size;
 
           console.log("Serve file", sendFile);
 
-          w.headers['Accept-Ranges'] = 'bytes';
-          w.headers['Content-Length'] = sendFile.size;
+          await w.writeHeader(statusCode);
           await sendFile.stream().pipeTo(await w.getWritableStream());
         }
         else {
-          w.writeHeader(404);
+          await w.writeHeader(404);
         }
       });
 
