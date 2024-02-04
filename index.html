@@ -8,17 +8,30 @@
 
   <body>
 
-    <input type='file' id='file-input' />
+    <input type='file' id='file-input' multiple />
 
     <script type="module">
       import { Client } from './lib/muxado-js/index.js';
-      import { Server, ServeMux } from './lib/http-js/index.js';
+      import { Server, ServeMux, parseRangeHeader } from './lib/http-js/index.js';
 
-      let file;
+      const files = {};
 
       const fileInput = document.getElementById('file-input');
       fileInput.addEventListener('change', (evt) => {
-        file = fileInput.files[0];
+
+        for (const file of fileInput.files) {
+
+          files[file.name] = file;
+
+          const div = document.createElement('div');
+          const link = document.createElement('a');
+          const uri = `https://test2.anderspitman.net/${file.name}`
+          link.setAttribute('href', uri);
+          link.innerText = uri;
+
+          div.appendChild(link);
+          document.body.appendChild(div);
+        }
       });
 
       const session = new Client({
@@ -31,13 +44,39 @@
         handler: mux,
       });
 
-      mux.handleFunc("/file", async (w, r) => {
+      mux.handleFunc("/", async (w, r) => {
+
+        console.log(r);
+
+        const pathParts = r.url.path.split('/');
+        const filename = pathParts[pathParts.length - 1];
+
+        const file = files[filename];
+
         if (file) {
-          w.headers['Content-Length'] = file.size;
-          await file.stream().pipeTo(await w.getWritableStream());
+
+          let sendFile = file;
+
+          if (r.headers.range) {
+            const range = parseRangeHeader(r.headers.range);
+            console.log(range);
+
+            if (range.end) {
+              sendFile = file.slice(range.start, range.end + 1);
+            }
+            else {
+              sendFile = file.slice(range.start);
+            }
+          }
+
+          console.log("Serve file", sendFile);
+
+          w.headers['Accept-Ranges'] = 'bytes';
+          w.headers['Content-Length'] = sendFile.size;
+          await sendFile.stream().pipeTo(await w.getWritableStream());
         }
         else {
-          console.error("No file selected");
+          w.writeHeader(404);
         }
       });
 
