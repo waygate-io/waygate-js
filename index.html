@@ -12,7 +12,7 @@
 
     <script type="module">
       import { Client } from './lib/muxado-js/index.js';
-      import { Server, ServeMux, parseRangeHeader } from './lib/http-js/index.js';
+      import { Server, parseRangeHeader } from './lib/http-js/index.js';
 
       const files = {};
 
@@ -39,13 +39,12 @@
         token: "yolo",
       });
 
-      const mux = new ServeMux();
       const httpServer = new Server({
         domain: 'test2.anderspitman.net',
-        handler: mux,
       });
 
-      mux.handleFunc("/", async (w, r) => {
+      console.log("serve");
+      httpServer.serve(session, async (r) => {
 
         console.log(r);
 
@@ -58,6 +57,8 @@
 
         let statusCode = 200;
 
+        const headers = {};
+
         if (file) {
 
           let sendFile = file;
@@ -65,49 +66,36 @@
 
           if (r.headers.get('range')) {
             const range = parseRangeHeader(r.headers.get('range'));
-            console.log(range);
 
             if (range.end) {
               sendFile = file.slice(range.start, range.end + 1);
-              w.headers['Content-Range'] = `bytes ${range.start}-${range.end}/${file.size}`;
+              headers['Content-Range'] = `bytes ${range.start}-${range.end}/${file.size}`;
             }
             else {
               sendFile = file.slice(range.start);
-              w.headers['Content-Range'] = `bytes ${range.start}-${file.size - 1}/${file.size}`;
+              headers['Content-Range'] = `bytes ${range.start}-${file.size - 1}/${file.size}`;
             }
 
             statusCode = 206;
           }
 
-          w.headers['Accept-Ranges'] = 'bytes';
-          w.headers['Content-Type'] = contentType;
-          w.headers['Content-Length'] = sendFile.size;
+          headers['Accept-Ranges'] = 'bytes';
+          headers['Content-Type'] = contentType;
+          headers['Content-Length'] = sendFile.size;
 
           console.log("Serve file", sendFile);
 
-          await w.writeHeader(statusCode);
-          await sendFile.stream().pipeTo(await w.getWritableStream());
+          return new Response(sendFile.stream(), {
+            status: statusCode,
+            headers,
+          });
         }
         else {
-          await w.writeHeader(404);
+          return new Response("Not found", {
+            status: 400,
+          });
         }
       });
-
-      const enc = new TextEncoder('utf8');
-
-      mux.handleFunc("/og", async (w, r) => {
-        w.headers = {
-          'OG': "Hi there",
-          'Content-Length': 8,
-          'Content-Type': 'text/plain',
-        },
-
-        await w.writeHeader(400);
-        await w.write(enc.encode("Hi there"));
-      });
-
-      console.log("serve");
-      httpServer.serve(session);
 
     </script>
   </body>
