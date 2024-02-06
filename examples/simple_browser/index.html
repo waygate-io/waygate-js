@@ -8,35 +8,21 @@
 
   <body>
 
-    <input type='file' id='file-input' multiple />
-    <button id='open-button'>Open</button>
+    <button id='open-button'>Open file</button>
 
     <script type="module">
       import { Client } from './lib/muxado-js/index.js';
-      import { Server, parseRangeHeader } from './lib/http-js/index.js';
-      import { openFile } from './lib/fs-js/index.js';
+      import { Server, directoryTreeHandler } from './lib/http-js/index.js';
+      import { openFile, openDirectory } from './lib/fs-js/index.js';
+
+      const dirTree = await openDirectory();
 
       const dec = new TextDecoder('utf-8');
       const openButton = document.getElementById('open-button');
       openButton.addEventListener('click', async (e) => {
-        const f = await openFile("./package.json");
-        for await (const chunk of f.stream()) {
-          console.log(dec.decode(chunk));
-        }
-      });
+        const files = await dirTree.addFiles();
 
-      const SERVER_DOMAIN = "anderspitman.net";
-      const TUNNEL_DOMAIN = "test.anderspitman.net";
-
-      const files = {};
-
-      const fileInput = document.getElementById('file-input');
-      fileInput.addEventListener('change', (evt) => {
-
-        for (const file of fileInput.files) {
-
-          files[file.name] = file;
-
+        for (const file of files) {
           const div = document.createElement('div');
           const link = document.createElement('a');
           const uri = `https://${TUNNEL_DOMAIN}/${file.name}`
@@ -47,6 +33,9 @@
           document.body.appendChild(div);
         }
       });
+
+      const SERVER_DOMAIN = "anderspitman.net";
+      const TUNNEL_DOMAIN = "test.anderspitman.net";
 
       const session = new Client({
         serverDomain: SERVER_DOMAIN,
@@ -59,58 +48,7 @@
       });
 
       console.log("serve");
-      httpServer.serve(session, async (r) => {
-
-        console.log(r);
-
-        const url = new URL(r.url);
-
-        const pathParts = url.pathname.split('/');
-        const filename = pathParts[pathParts.length - 1];
-
-        const file = files[filename];
-
-        let statusCode = 200;
-
-        const headers = {};
-
-        if (file) {
-
-          let sendFile = file;
-          const contentType = file.type;
-
-          if (r.headers.get('range')) {
-            const range = parseRangeHeader(r.headers.get('range'));
-
-            if (range.end) {
-              sendFile = file.slice(range.start, range.end + 1);
-              headers['Content-Range'] = `bytes ${range.start}-${range.end}/${file.size}`;
-            }
-            else {
-              sendFile = file.slice(range.start);
-              headers['Content-Range'] = `bytes ${range.start}-${file.size - 1}/${file.size}`;
-            }
-
-            statusCode = 206;
-          }
-
-          headers['Accept-Ranges'] = 'bytes';
-          headers['Content-Type'] = contentType;
-          headers['Content-Length'] = sendFile.size;
-
-          console.log("Serve file", sendFile);
-
-          return new Response(sendFile.stream(), {
-            status: statusCode,
-            headers,
-          });
-        }
-        else {
-          return new Response("Not found", {
-            status: 400,
-          });
-        }
-      });
+      httpServer.serve(session, directoryTreeHandler(dirTree));
 
     </script>
   </body>
