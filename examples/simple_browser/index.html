@@ -20,7 +20,7 @@
       const openButton = document.getElementById('open-button');
       openButton.addEventListener('click', async (e) => {
         const f = await openFile("./package.json");
-        for await (const chunk of f.readable) {
+        for await (const chunk of f.stream()) {
           console.log(dec.decode(chunk));
         }
       });
