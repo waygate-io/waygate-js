@@ -11,7 +11,7 @@
     <button id='open-button'>Open file</button>
 
     <script type="module">
-      import { Client } from './lib/muxado-js/index.js';
+      import { connect } from './lib/muxado-js/index.js';
       import { Server, directoryTreeHandler } from './lib/http-js/index.js';
       import { openFile, openDirectory } from './lib/fs-js/index.js';
 
@@ -37,7 +37,7 @@
       const SERVER_DOMAIN = "anderspitman.net";
       const TUNNEL_DOMAIN = "test.anderspitman.net";
 
-      const session = new Client({
+      const session = await connect({
         serverDomain: SERVER_DOMAIN,
         tunnelDomain: TUNNEL_DOMAIN,
         token: "yolo",
