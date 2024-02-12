@@ -1,4 +1,4 @@
-import { connect, HttpServer, openDirectory, directoryTreeHandler } from './lib/waygate-js/index.js';
+import { connect, HttpServer, openDirectory, directoryTreeHandler, checkTokenFlow } from './lib/waygate-js/index.js';
 import { argv } from './lib/waygate-js/utils.js';
 
 const SERVER_DOMAIN = "anderspitman.net";

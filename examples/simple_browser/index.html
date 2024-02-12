@@ -11,7 +11,19 @@
     <button id='open-button'>Open file</button>
 
     <script type="module">
-      import { connect, HttpServer, openDirectory, directoryTreeHandler } from './lib/waygate-js/index.js';
+      import {
+        getToken, connect, HttpServer, openDirectory, directoryTreeHandler,
+        startTokenFlow, checkTokenFlow
+      } from './lib/waygate-js/index.js';
+
+      const SERVER_DOMAIN = "anderspitman.net";
+
+      await checkTokenFlow();
+
+      const token = getToken();
+      if (!token) {
+        await startTokenFlow(`https://${SERVER_DOMAIN}/oauth2`, "http://localhost:8000", "http://localhost:8000");
+      }
 
       const dirTree = await openDirectory();
 
@@ -34,11 +46,9 @@
         }
       });
 
-      const SERVER_DOMAIN = "anderspitman.net";
-
       const session = await connect({
         serverDomain: SERVER_DOMAIN,
-        token: "yolo",
+        token,
       });
 
       tunnelDomain = session.domain;
