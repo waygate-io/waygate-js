@@ -13,7 +13,10 @@ async function connect({ serverDomain, tunnelDomain, token }) {
   return muxSession;
 }
 
-async function startTokenFlow(waygateUri, clientId, redirectUri) {
+async function startTokenFlow(waygateUri) {
+  const clientId = window.location.origin;
+  const redirectUri = clientId;
+
   const state = genRandomText(32);
   const authUri = `${waygateUri}/authorize?client_id=${clientId}&redirect_uri=${redirectUri}&state=${state}&response_type=code&scope=waygate`;
 
@@ -32,7 +35,7 @@ async function checkTokenFlow() {
   const code = params.get('code');
   const state = params.get('state');
 
-  if (!code) {
+  if (!code || !state) {
     return;
   }
 
