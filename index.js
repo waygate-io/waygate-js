@@ -3,7 +3,13 @@ import { Server as HttpServer, directoryTreeHandler } from './lib/http-js/index.
 import { openDirectory } from './lib/fs-js/index.js';
 //import { getToken } from './lib/oauth2-js/index.js';
 
+const DEFAULT_WAYGATE_DOMAIN = "waygate.io";
+
 async function connect({ serverDomain, tunnelDomain, token }) {
+
+  if (!serverDomain) {
+    serverDomain = DEFAULT_WAYGATE_DOMAIN;
+  }
 
   const muxSession = await muxadoConnect({
     serverDomain,
@@ -14,6 +20,11 @@ async function connect({ serverDomain, tunnelDomain, token }) {
 }
 
 async function startTokenFlow(waygateUri) {
+
+  if (!waygateUri) {
+    waygateUri = `https://${DEFAULT_WAYGATE_DOMAIN}/oauth2`;
+  }
+
   const clientId = window.location.origin;
   const redirectUri = clientId;
 
