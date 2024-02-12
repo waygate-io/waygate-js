@@ -20,9 +20,17 @@
 
       await checkTokenFlow();
 
+      async function startFlow() {
+        await startTokenFlow(
+          `https://${SERVER_DOMAIN}/oauth2`,
+          "http://localhost:8000",
+          "http://localhost:8000"
+        );
+      }
+
       const token = getToken();
       if (!token) {
-        await startTokenFlow(`https://${SERVER_DOMAIN}/oauth2`, "http://localhost:8000", "http://localhost:8000");
+        await startFlow();
       }
 
       const dirTree = await openDirectory();
@@ -46,10 +54,16 @@
         }
       });
 
-      const session = await connect({
-        serverDomain: SERVER_DOMAIN,
-        token,
-      });
+      let session;
+      try {
+        session = await connect({
+          serverDomain: SERVER_DOMAIN,
+          token,
+        });
+      }
+      catch (e) {
+        await startFlow();
+      }
 
       tunnelDomain = session.domain;
 
