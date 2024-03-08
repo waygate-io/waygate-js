@@ -1,20 +1,26 @@
 import { connect as muxadoConnect } from './lib/muxado-js/index.js';
 import { Server as HttpServer, directoryTreeHandler } from './lib/http-js/index.js';
 import { openDirectory } from './lib/fs-js/index.js';
+import { webtransportConnect } from './tunnel.js';
 //import { getToken } from './lib/oauth2-js/index.js';
 
 const DEFAULT_WAYGATE_DOMAIN = "waygate.io";
 
-async function connect({ serverDomain, tunnelDomain, token }) {
+async function connect({ serverDomain, token }) {
 
   if (!serverDomain) {
     serverDomain = DEFAULT_WAYGATE_DOMAIN;
   }
 
-  const muxSession = await muxadoConnect({
+  const muxSession = await webtransportConnect({
     serverDomain,
     token,
   });
+
+  //const muxSession = await muxadoConnect({
+  //  serverDomain,
+  //  token,
+  //});
 
   return muxSession;
 }
