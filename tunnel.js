@@ -1,3 +1,5 @@
+const MESSAGE_TYPE_ERROR = 0;
+
 async function webtransportConnect({ serverDomain, token }) {
 
   const encoder = new TextEncoder();
@@ -18,12 +20,17 @@ async function webtransportConnect({ serverDomain, token }) {
 
   const writer = setupStream.writable.getWriter();
   const reader = setupStream.readable.getReader();
-  writer.write(tunReqBytes);
+
+  await writer.write(tunReqBytes);
   await writer.close();
 
   const { value, done } = await reader.read();
 
   const tunRes = JSON.parse(decoder.decode(value));
+
+  if (tunRes.type == MESSAGE_TYPE_ERROR) {
+    throw new Error(tunRes.message);
+  }
 
   const incoming = wt.incomingBidirectionalStreams.getReader();
 
