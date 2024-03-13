@@ -12,15 +12,19 @@ async function connect({ serverDomain, token }) {
     serverDomain = DEFAULT_WAYGATE_DOMAIN;
   }
 
-  const muxSession = await webtransportConnect({
-    serverDomain,
-    token,
-  });
-
-  //const muxSession = await muxadoConnect({
-  //  serverDomain,
-  //  token,
-  //});
+  let muxSession;
+  if ('WebTransport' in globalThis) {
+    muxSession = await webtransportConnect({
+      serverDomain,
+      token,
+    });
+  }
+  else {
+    muxSession = await muxadoConnect({
+      serverDomain,
+      token,
+    });
+  }
 
   return muxSession;
 }

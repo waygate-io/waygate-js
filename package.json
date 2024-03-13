@@ -3,7 +3,7 @@
   "type": "module",
   "version": "0.1.0",
   "description": "",
-  "main": "test.js",
+  "main": "index.js",
   "directories": {
     "lib": "lib"
   },
