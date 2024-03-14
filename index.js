@@ -6,14 +6,34 @@ import { webtransportConnect } from './tunnel.js';
 
 const DEFAULT_WAYGATE_DOMAIN = "waygate.io";
 
-async function connect({ serverDomain, token }) {
+async function connect(options) {
 
-  if (!serverDomain) {
-    serverDomain = DEFAULT_WAYGATE_DOMAIN;
+  let tunnelType = 'webtransport';
+  let serverDomain = DEFAULT_WAYGATE_DOMAIN;
+  let token = "";
+
+  if (options) {
+    if (options.tunnelType) {
+      tunnelType = options.tunnelType;
+      if (tunnelType !== 'webtransport' && tunnelType !== 'websocket') {
+        throw new Error("Unknown tunnel type: " + tunnelType);
+      }
+      if (tunnelType === 'webtransport' && !webtransportSupported()) {
+        throw new Error("WebTransport not supported by your JavaScript runtime");
+      }
+    }
+    if (options.serverDomain) {
+      serverDomain = options.serverDomain;
+    }
+    if (options.token) {
+      token = options.token;
+    }
   }
 
+
   let muxSession;
-  if ('WebTransport' in globalThis) {
+
+  if (webtransportSupported() && tunnelType !== 'websocket') {
     muxSession = await webtransportConnect({
       serverDomain,
       token,
@@ -27,6 +47,10 @@ async function connect({ serverDomain, token }) {
   }
 
   return muxSession;
+}
+
+function webtransportSupported() {
+  return 'WebTransport' in globalThis;
 }
 
 async function startTokenFlow(waygateUri) {
