@@ -1,0 +1,9 @@
+[submodule "lib/muxado-js"]
+	path = lib/muxado-js
+	url = git@github.com:waygate-io/muxado-js
+[submodule "lib/http-js"]
+	path = lib/http-js
+	url = git@github.com:waygate-io/http-js
+[submodule "lib/fs-js"]
+	path = lib/fs-js
+	url = git@github.com:waygate-io/fs-js
