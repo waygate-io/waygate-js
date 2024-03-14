@@ -6,7 +6,7 @@ import { webtransportConnect } from './tunnel.js';
 
 const DEFAULT_WAYGATE_DOMAIN = "waygate.io";
 
-async function connect(options) {
+async function listen(options) {
 
   let tunnelType = 'webtransport';
   let serverDomain = DEFAULT_WAYGATE_DOMAIN;
@@ -47,6 +47,11 @@ async function connect(options) {
   }
 
   return muxSession;
+}
+
+async function serve(listener, handler) {
+  const httpServer = new HttpServer();
+  return httpServer.serve(listener, handler);
 }
 
 function webtransportSupported() {
@@ -131,7 +136,8 @@ export {
   getToken,
   checkTokenFlow,
   startTokenFlow,
-  connect,
+  listen,
+  serve,
   HttpServer,
   openDirectory,
   directoryTreeHandler,

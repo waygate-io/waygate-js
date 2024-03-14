@@ -12,7 +12,7 @@
 
     <script type="module">
       import {
-        getToken, connect, HttpServer, openDirectory, directoryTreeHandler,
+        getToken, listen, serve, openDirectory, directoryTreeHandler,
         startTokenFlow, checkTokenFlow
       } from './lib/waygate-js/index.js';
 
@@ -44,11 +44,11 @@
         }
       });
 
-      let session;
+      let listener;
       try {
-        session = await connect({
-          //tunnelType: 'websocket',
-          token,
+        listener = await listen({
+          tunnelType: 'websocket',
+          //token,
         });
       }
       catch (e) {
@@ -56,14 +56,10 @@
         await startTokenFlow();
       }
 
-      tunnelDomain = session.domain;
-
-      const httpServer = new HttpServer({
-        domain: session.domain,
-      });
+      tunnelDomain = listener.getDomain();
 
       console.log("serve");
-      httpServer.serve(session, directoryTreeHandler(dirTree));
+      serve(listener, directoryTreeHandler(dirTree));
 
     </script>
   </body>

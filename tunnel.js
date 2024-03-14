@@ -35,7 +35,9 @@ async function webtransportConnect({ serverDomain, token }) {
   const incoming = wt.incomingBidirectionalStreams.getReader();
 
   return {
-    domain: tunRes.domain,
+    getDomain: () => {
+      return tunRes.domain;
+    },
     accept: async () => {
       const res = await incoming.read();
       return res.value;
