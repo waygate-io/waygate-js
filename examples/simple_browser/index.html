@@ -23,14 +23,14 @@
         await startTokenFlow();
       }
 
-      const dirTree = await openDirectory();
+      const dirTree = openDirectory();
 
       let tunnelDomain;
 
       const dec = new TextDecoder('utf-8');
       const openButton = document.getElementById('open-button');
       openButton.addEventListener('click', async (e) => {
-        const files = await dirTree.addFiles();
+        const files = await dirTree.selectFiles();
 
         for (const file of files) {
           const div = document.createElement('div');
@@ -47,13 +47,13 @@
       let listener;
       try {
         listener = await listen({
-          tunnelType: 'websocket',
+          //tunnelType: 'websocket',
           //token,
         });
       }
       catch (e) {
         console.error(e);
-        await startTokenFlow();
+        //await startTokenFlow();
       }
 
       tunnelDomain = listener.getDomain();
