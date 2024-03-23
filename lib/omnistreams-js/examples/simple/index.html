@@ -1,0 +1,77 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="icon" href="data:;base64,=">
+  </head>
+
+  <body>
+
+    <button id='open-button'>Open file</button>
+
+    <script type="module">
+      import { connect } from '../../index.js';
+
+      const conn = await connect();
+
+      await conn.openStream();
+      await conn.openStream();
+      await conn.openStream();
+      const stream = await conn.openStream();
+      const writer = stream.writable.getWriter();
+      const reader = stream.readable.getReader();
+
+      const encoder = new TextEncoder();
+
+      await writer.write(encoder.encode("Hi there"));
+
+      //await checkTokenFlow();
+
+      //const token = getToken();
+      //if (!token) {
+      //  await startTokenFlow();
+      //}
+
+      //const dirTree = openDirectory();
+
+      //let tunnelDomain;
+
+      //const dec = new TextDecoder('utf-8');
+      //const openButton = document.getElementById('open-button');
+      //openButton.addEventListener('click', async (e) => {
+      //  const files = await dirTree.selectFiles();
+
+      //  for (const file of files) {
+      //    const div = document.createElement('div');
+      //    const link = document.createElement('a');
+      //    const uri = `https://${tunnelDomain}/${file.name}`
+      //    link.setAttribute('href', uri);
+      //    link.innerText = uri;
+
+      //    div.appendChild(link);
+      //    document.body.appendChild(div);
+      //  }
+      //});
+
+      //let listener;
+      //try {
+      //  listener = await listen({
+      //    //serverDomain: "waygate.iobio.io",
+      //    //tunnelType: 'websocket',
+      //    //token,
+      //  });
+      //}
+      //catch (e) {
+      //  console.error(e);
+      //  //await startTokenFlow();
+      //}
+
+      //tunnelDomain = listener.getDomain();
+
+      //console.log("serve");
+      //serve(listener, directoryTreeHandler(dirTree));
+
+    </script>
+  </body>
+</html>
