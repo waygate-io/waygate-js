@@ -6,6 +6,102 @@ import { webtransportConnect } from './tunnel.js';
 
 const DEFAULT_WAYGATE_DOMAIN = "waygate.io";
 
+const MESSAGE_TYPE_TUNNEL_CONFIG = 0;
+const MESSAGE_TYPE_SUCCESS = 1;
+const MESSAGE_TYPE_ERROR = 2;
+const MESSAGE_TYPE_STREAM = 3;
+
+function wrapWebTransportStream(stream, firstMessage) {
+
+  const { readable, writable } = new TransformStream();
+
+  const writer = writable.getWriter();
+
+  // TODO: this feels like a race condition
+  (async () => {
+    await writer.write(firstMessage);
+    writer.releaseLock();
+  })();
+
+  return {
+    readable,
+    writable: stream.writable,
+  }
+}
+
+async function wrapWebTransport(wtConn) {
+
+  await wtConn.ready;
+
+  const { readable, writable } = new TransformStream();
+
+  //const streamReader = readable.getReader();
+  const streamWriter = writable.getWriter();
+
+  const incomingStreamsReader = wtConn.incomingBidirectionalStreams.getReader();
+
+  let onTunConfig;
+  const tunConfigPromise = new Promise((resolve, reject) => {
+    onTunConfig = resolve;
+  });
+
+  (async () => {
+    //for await (const stream of wtConn.incomingBidirectionalStreams) {
+    while (true) {
+      const incomingStream = await incomingStreamsReader.read();
+      const stream = incomingStream.value;
+
+      const reader = stream.readable.getReader();
+
+      const { value, done } = await reader.read();
+      reader.releaseLock();
+
+      const msg = value;
+
+      const msgType = msg[0];
+
+      switch (msgType) {
+        case MESSAGE_TYPE_TUNNEL_CONFIG: {
+
+          const tunConfig = JSON.parse(new TextDecoder().decode(msg.slice(1)));
+
+          onTunConfig(tunConfig);
+
+          const writer = stream.writable.getWriter();
+          await writer.write(new Uint8Array([MESSAGE_TYPE_SUCCESS]));
+          writer.releaseLock();
+          stream.writable.close();
+
+          break;
+        }
+        case MESSAGE_TYPE_STREAM: {
+
+          await streamWriter.write(wrapWebTransportStream(stream, msg.slice(1)));
+
+          break;
+        }
+        default: {
+          throw new Error("Unknown message type");
+        }
+      }
+
+      if (incomingStream.done) {
+        break;
+      }
+    }
+  })();
+
+  const tunConfig = await tunConfigPromise;
+
+  return {
+    connectionStream: readable,
+
+    getDomain() {
+      return tunConfig.domain;
+    }
+  };
+}
+
 async function listen(options) {
 
   let tunnelType = 'webtransport';
@@ -46,7 +142,9 @@ async function listen(options) {
     });
   }
 
-  return muxSession;
+  return wrapWebTransport(muxSession);
+
+  //return muxSession; 
 }
 
 async function serve(listener, handler) {

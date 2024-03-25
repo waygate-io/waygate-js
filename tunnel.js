@@ -1,4 +1,4 @@
-const MESSAGE_TYPE_ERROR = 0;
+import { WebTransport } from './lib/muxado-js/index.js';
 
 async function webtransportConnect({ serverDomain, token }) {
 
