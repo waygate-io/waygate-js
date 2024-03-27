@@ -1,4 +1,4 @@
-import { connect as muxadoConnect } from './lib/muxado-js/index.js';
+import { WebTransport as WebSocketTransportOmni } from './lib/muxado-js/index.js';
 import { Server as HttpServer, directoryTreeHandler } from './lib/http-js/index.js';
 import { openDirectory } from './lib/fs-js/index.js';
 //import { getToken } from './lib/oauth2-js/index.js';
@@ -132,22 +132,13 @@ async function listen(options) {
     }
   }
 
-
-  let conn;
-
+  let WebTransportType = WebSocketTransportOmni;
   if (webtransportSupported() && tunnelType !== 'websocket') {
-    conn = new WebTransport(`https://${serverDomain}/waygate?token=${token}&termination-type=server`);
-  }
-  else {
-    conn = await muxadoConnect({
-      serverDomain,
-      token,
-    });
+    WebTransportType = WebTransport;
   }
 
+  const conn = new WebTransportType(`https://${serverDomain}/waygate?token=${token}&termination-type=server`);
   return wrapWebTransport(conn);
-
-  //return muxSession; 
 }
 
 async function serve(listener, handler) {
