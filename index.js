@@ -69,8 +69,15 @@ async function wrapWebTransport(wtConn) {
 
           const writer = stream.writable.getWriter();
           await writer.write(new Uint8Array([MESSAGE_TYPE_SUCCESS]));
-          writer.releaseLock();
-          stream.writable.close();
+
+          // TODO: this is a hack. When using WebTransport, it was closing the
+          // stream before the reponse code got received by the server. Need
+          // to figure out a way to close while guaranteeing any previous
+          // writes have been received.
+          (async() => {
+            await sleep(1000);
+            writer.close()
+          })();
 
           break;
         }
@@ -81,7 +88,7 @@ async function wrapWebTransport(wtConn) {
           break;
         }
         default: {
-          throw new Error("Unknown message type");
+          throw new Error("Unknown message type: " + msgType);
         }
       }
 
@@ -127,22 +134,19 @@ async function listen(options) {
   }
 
 
-  let muxSession;
+  let conn;
 
   if (webtransportSupported() && tunnelType !== 'websocket') {
-    muxSession = await webtransportConnect({
-      serverDomain,
-      token,
-    });
+    conn = new WebTransport(`https://${serverDomain}/waygate?token=${token}&termination-type=server`);
   }
   else {
-    muxSession = await muxadoConnect({
+    conn = await muxadoConnect({
       serverDomain,
       token,
     });
   }
 
-  return wrapWebTransport(muxSession);
+  return wrapWebTransport(conn);
 
   //return muxSession; 
 }
@@ -228,6 +232,12 @@ function genRandomText(len) {
   }
 
   return text;
+}
+
+async function sleep(ms) {
+  return new Promise((resolve, reject) => {
+    setTimeout(resolve, ms);
+  });
 }
 
 export {
