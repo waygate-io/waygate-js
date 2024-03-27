@@ -1,7 +1,6 @@
 import { connect as muxadoConnect } from './lib/muxado-js/index.js';
 import { Server as HttpServer, directoryTreeHandler } from './lib/http-js/index.js';
 import { openDirectory } from './lib/fs-js/index.js';
-import { webtransportConnect } from './tunnel.js';
 //import { getToken } from './lib/oauth2-js/index.js';
 
 const DEFAULT_WAYGATE_DOMAIN = "waygate.io";
