@@ -11,19 +11,9 @@
     <button id='open-button'>Open file</button>
 
     <script type="module">
-      import {
-        getToken, listen, serve, openDirectory, directoryTreeHandler,
-        startTokenFlow, checkTokenFlow
-      } from './lib/waygate-js/index.js';
+      import waygate from '../../index.js';
 
-      await checkTokenFlow();
-
-      const token = getToken();
-      if (!token) {
-        await startTokenFlow();
-      }
-
-      const dirTree = openDirectory();
+      const dirTree = waygate.openDirectory();
 
       let tunnelDomain;
 
@@ -44,22 +34,14 @@
         }
       });
 
-      let listener;
-      try {
-        listener = await listen({
-          //tunnelType: 'websocket',
-          //token,
-        });
-      }
-      catch (e) {
-        console.error(e);
-        //await startTokenFlow();
-      }
+      const listener = await waygate.listen({
+        serverDomain: 'waygate.io',
+        tunnelType: 'websocket',
+      });
 
       tunnelDomain = listener.getDomain();
 
-      console.log("serve");
-      serve(listener, directoryTreeHandler(dirTree));
+      waygate.serve(listener, waygate.directoryTreeHandler(dirTree));
 
     </script>
   </body>

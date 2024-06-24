@@ -157,7 +157,7 @@ async function startTokenFlow(waygateUri) {
   }
 
   const clientId = window.location.origin;
-  const redirectUri = clientId;
+  const redirectUri = window.location.href;
 
   const state = genRandomText(32);
   const authUri = `${waygateUri}/authorize?client_id=${clientId}&redirect_uri=${redirectUri}&state=${state}&response_type=code&scope=waygate`;
@@ -205,11 +205,19 @@ async function checkTokenFlow() {
   const json = await res.json();
   localStorage.setItem('waygate_token', json.access_token);
   localStorage.removeItem(state);
-  window.history.pushState({}, '', '/');
+  window.history.pushState({}, '', authRequest.redirectUri);
 }
 
-function getToken() {
-  return localStorage.getItem('waygate_token');
+async function getToken() {
+
+  await checkTokenFlow();
+
+  const token = localStorage.getItem('waygate_token');
+  if (!token) {
+    await startTokenFlow();
+  }
+
+  return token;
 }
 
 function genRandomText(len) {
@@ -230,7 +238,7 @@ async function sleep(ms) {
   });
 }
 
-export {
+export default {
   getToken,
   checkTokenFlow,
   startTokenFlow,

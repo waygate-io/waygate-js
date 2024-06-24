@@ -1,0 +1,41 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="icon" href="data:;base64,=">
+  </head>
+
+  <body>
+    <script type="module">
+
+      import waygate from '../../index.js';
+
+      const token = await waygate.getToken();
+
+      let tunnelDomain;
+
+      let listener;
+      try {
+        listener = await waygate.listen({
+          serverDomain: 'waygate.io',
+          tunnelType: 'websocket',
+          token,
+        });
+      }
+      catch (e) {
+        console.error(e);
+        await startTokenFlow();
+      }
+
+      tunnelDomain = listener.getDomain();
+
+      waygate.serve(listener, (req) => {
+        return new Response("Hi there");
+      });
+
+      console.log(`https://${tunnelDomain}`);
+
+    </script>
+  </body>
+</html>
