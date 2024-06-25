@@ -15,18 +15,11 @@
 
       let tunnelDomain;
 
-      let listener;
-      try {
-        listener = await waygate.listen({
-          serverDomain: 'waygate.io',
-          tunnelType: 'websocket',
-          token,
-        });
-      }
-      catch (e) {
-        console.error(e);
-        await startTokenFlow();
-      }
+      const listener = await waygate.listen({
+        serverDomain: 'waygate.io',
+        tunnelType: 'websocket',
+        token,
+      });
 
       tunnelDomain = listener.getDomain();
 
