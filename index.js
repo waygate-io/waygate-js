@@ -1,4 +1,4 @@
-import { WebTransport as WebSocketTransportOmni } from './lib/muxado-js/index.js';
+import omnistreams from './lib/omnistreams-js/index.js';
 import { Server as HttpServer, directoryTreeHandler } from './lib/http-js/index.js';
 import { openDirectory } from './lib/fs-js/index.js';
 //import { getToken } from './lib/oauth2-js/index.js';
@@ -132,7 +132,7 @@ async function listen(options) {
     }
   }
 
-  let WebTransportType = WebSocketTransportOmni;
+  let WebTransportType = omnistreams.WebTransport;
   if (webtransportSupported() && tunnelType !== 'websocket') {
     WebTransportType = WebTransport;
   }
