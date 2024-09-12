@@ -11,12 +11,13 @@
 
       import waygate from '../../index.js';
 
+      waygate.setServerUri('https://anderspitman.com');
+
       const token = await waygate.getToken();
 
       let tunnelDomain;
 
       const listener = await waygate.listen({
-        serverDomain: 'waygate.io',
         tunnelType: 'websocket',
         token,
       });

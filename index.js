@@ -3,12 +3,16 @@ import { Server as HttpServer, directoryTreeHandler } from './lib/http-js/index.
 import { openDirectory } from './lib/fs-js/index.js';
 //import { getToken } from './lib/oauth2-js/index.js';
 
-const DEFAULT_WAYGATE_DOMAIN = "waygate.io";
-
 const MESSAGE_TYPE_TUNNEL_CONFIG = 0;
 const MESSAGE_TYPE_SUCCESS = 1;
 const MESSAGE_TYPE_ERROR = 2;
 const MESSAGE_TYPE_STREAM = 3;
+
+let serverUri = `https://waygate.io`;
+
+function setServerUri(uri) {
+  serverUri = uri;
+}
 
 function wrapWebTransportStream(stream, firstMessage) {
 
@@ -111,7 +115,6 @@ async function wrapWebTransport(wtConn) {
 async function listen(options) {
 
   let tunnelType = 'webtransport';
-  let serverDomain = DEFAULT_WAYGATE_DOMAIN;
   let token = "";
 
   if (options) {
@@ -124,9 +127,6 @@ async function listen(options) {
         throw new Error("WebTransport not supported by your JavaScript runtime");
       }
     }
-    if (options.serverDomain) {
-      serverDomain = options.serverDomain;
-    }
     if (options.token) {
       token = options.token;
     }
@@ -137,7 +137,7 @@ async function listen(options) {
     WebTransportType = WebTransport;
   }
 
-  const conn = new WebTransportType(`https://${serverDomain}/waygate?token=${token}&termination-type=server`);
+  const conn = new WebTransportType(`${serverUri}/waygate?token=${token}&termination-type=server`);
   return wrapWebTransport(conn);
 }
 
@@ -150,22 +150,23 @@ function webtransportSupported() {
   return 'WebTransport' in globalThis;
 }
 
-async function startTokenFlow(waygateUri) {
-
-  if (!waygateUri) {
-    waygateUri = `https://${DEFAULT_WAYGATE_DOMAIN}/oauth2`;
-  }
+async function startTokenFlow() {
 
   const clientId = window.location.origin;
   const redirectUri = window.location.href;
 
   const state = genRandomText(32);
-  const authUri = `${waygateUri}/authorize?client_id=${clientId}&redirect_uri=${redirectUri}&state=${state}&response_type=code&scope=waygate`;
+
+  const pkceVerifier = genRandomText(32);
+  const pkceChallenge = generateCodeChallengeFromVerifier(pkceVerifier);
+
+  const authUri = `${serverUri}/oauth2/authorize?client_id=${clientId}&redirect_uri=${redirectUri}&state=${state}&response_type=code&scope=waygate&code_challenge_method=S256&code_challenge=${pkceChallenge}`;
 
   const authRequest = {
-    waygateUri,
+    serverUri,
     clientId,
     redirectUri,
+    pkceVerifier,
   };
 
   localStorage.setItem(state, JSON.stringify(authRequest));
@@ -189,7 +190,7 @@ async function checkTokenFlow() {
 
   const authRequest = JSON.parse(authRequestJson);
 
-  const res = await fetch(authRequest.waygateUri + "/token", {
+  const res = await fetch(authRequest.serverUri + "/oauth2/token", {
     method: 'POST',
     headers:{
       'Content-Type': 'application/x-www-form-urlencoded'
@@ -232,6 +233,31 @@ function genRandomText(len) {
   return text;
 }
 
+// Taken from https://stackoverflow.com/a/63336562/943814
+function sha256(plain) {
+  // returns promise ArrayBuffer
+  const encoder = new TextEncoder();
+  const data = encoder.encode(plain);
+  return window.crypto.subtle.digest("SHA-256", data);
+}
+function base64urlencode(a) {
+  var str = "";
+  var bytes = new Uint8Array(a);
+  var len = bytes.byteLength;
+  for (var i = 0; i < len; i++) {
+    str += String.fromCharCode(bytes[i]);
+  }
+  return btoa(str)
+    .replace(/\+/g, "-")
+    .replace(/\//g, "_")
+    .replace(/=+$/, "");
+}
+async function generateCodeChallengeFromVerifier(v) {
+  var hashed = await sha256(v);
+  var base64encoded = base64urlencode(hashed);
+  return base64encoded;
+}
+
 async function sleep(ms) {
   return new Promise((resolve, reject) => {
     setTimeout(resolve, ms);
@@ -239,6 +265,7 @@ async function sleep(ms) {
 }
 
 export default {
+  setServerUri,
   getToken,
   checkTokenFlow,
   startTokenFlow,
