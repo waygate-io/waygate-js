@@ -77,10 +77,12 @@ async function wrapWebTransport(wtConn) {
           // stream before the reponse code got received by the server. Need
           // to figure out a way to close while guaranteeing any previous
           // writes have been received.
-          (async() => {
-            await sleep(1000);
-            writer.close()
-          })();
+          //(async() => {
+          //  await sleep(1000);
+          //  writer.close()
+          //})();
+
+          await writer.close()
 
           break;
         }
