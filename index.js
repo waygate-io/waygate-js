@@ -266,7 +266,7 @@ async function sleep(ms) {
   });
 }
 
-export default {
+export {
   setServerUri,
   getToken,
   checkTokenFlow,

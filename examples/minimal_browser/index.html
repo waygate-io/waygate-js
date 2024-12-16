@@ -10,7 +10,9 @@
 
     <script type="module">
 
-      import waygate from '../../index.js';
+      import * as waygate from '../../index.js';
+
+      waygate.setServerUri('https://waygate.tech');
 
       const listener = await waygate.listen({
         serverDomain: 'waygate.io',
