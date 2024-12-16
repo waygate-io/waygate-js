@@ -9,9 +9,9 @@
   <body>
     <script type="module">
 
-      import waygate from '../../index.js';
+      import * as waygate from '../../index.js';
 
-      waygate.setServerUri('https://anderspitman.com');
+      waygate.setServerUri('https://waygate.tech');
 
       const token = await waygate.getToken();
 

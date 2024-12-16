@@ -160,7 +160,7 @@ async function startTokenFlow() {
   const state = genRandomText(32);
 
   const pkceVerifier = genRandomText(32);
-  const pkceChallenge = generateCodeChallengeFromVerifier(pkceVerifier);
+  const pkceChallenge = await generateCodeChallengeFromVerifier(pkceVerifier);
 
   const authUri = `${serverUri}/oauth2/authorize?client_id=${clientId}&redirect_uri=${redirectUri}&state=${state}&response_type=code&scope=waygate&code_challenge_method=S256&code_challenge=${pkceChallenge}`;
 
@@ -202,6 +202,7 @@ async function checkTokenFlow() {
       client_id: authRequest.clientId,
       redirect_uri: authRequest.redirectUri,
       grant_type: 'authorization_code',
+      code_verifier: authRequest.pkceVerifier,
     }),
   });
 
