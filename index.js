@@ -118,6 +118,7 @@ async function listen(options) {
 
   let tunnelType = 'webtransport';
   let token = "";
+  let clientName = "";
 
   if (options) {
     if (options.tunnelType) {
@@ -132,6 +133,9 @@ async function listen(options) {
     if (options.token) {
       token = options.token;
     }
+    if (options.clientName) {
+      clientName = options.clientName;
+    }
   }
 
   let WebTransportType = omnistreams.WebTransport;
@@ -139,7 +143,7 @@ async function listen(options) {
     WebTransportType = WebTransport;
   }
 
-  const conn = new WebTransportType(`${serverUri}/waygate?token=${token}&termination-type=server`);
+  const conn = new WebTransportType(`${serverUri}/waygate?token=${token}&termination-type=server&client-name=${clientName}`);
   return wrapWebTransport(conn);
 }
 
