@@ -93,7 +93,7 @@ async function wrapWebTransport(wtConn) {
           break;
         }
         default: {
-          throw new Error("Unknown message type: " + msgType);
+          console.error("Unknown message type: " + msgType);
         }
       }
 
