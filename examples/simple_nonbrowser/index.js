@@ -2,11 +2,13 @@ import * as waygate from '../../index.js';
 import { argv } from '../../utils.js';
 
 const rootDir = argv[2];
-const serverUri = argv[3] || 'https://wg1.iobio.io';
+const serverUri = argv[3];
 
 (async () => {
 
-  waygate.setServerUri(serverUri);
+  if (serverUri) {
+    waygate.setServerUri(serverUri);
+  }
 
   const listener = await waygate.listen({
     tunnelType: 'websocket',

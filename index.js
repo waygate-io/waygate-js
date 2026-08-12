@@ -170,7 +170,7 @@ async function startTokenFlow() {
   const pkceVerifier = genRandomText(32);
   const pkceChallenge = await generateCodeChallengeFromVerifier(pkceVerifier);
 
-  const authUri = `${serverUri}/oauth2/authorize?client_id=${clientId}&redirect_uri=${redirectUri}&state=${state}&response_type=code&scope=waygate&code_challenge_method=S256&code_challenge=${pkceChallenge}`;
+  const authUri = `${serverUri}/auth/oauth/authorize?client_id=${clientId}&redirect_uri=${redirectUri}&state=${state}&response_type=code&scope=waygate&code_challenge_method=S256&code_challenge=${pkceChallenge}`;
 
   const authRequest = {
     serverUri,
@@ -200,7 +200,7 @@ async function checkTokenFlow() {
 
   const authRequest = JSON.parse(authRequestJson);
 
-  const res = await fetch(authRequest.serverUri + "/oauth2/token", {
+  const res = await fetch(authRequest.serverUri + "/auth/oauth/token", {
     method: 'POST',
     headers:{
       'Content-Type': 'application/x-www-form-urlencoded'
