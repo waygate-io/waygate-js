@@ -110,6 +110,10 @@ async function wrapWebTransport(wtConn) {
 
     getDomain() {
       return tunConfig.domain;
+    },
+
+    getToken() {
+      return tunConfig.token || '';
     }
   };
 }
@@ -143,7 +147,7 @@ async function listen(options) {
     WebTransportType = WebTransport;
   }
 
-  const conn = new WebTransportType(`${serverUri}/waygate?token=${token}&termination-type=server&client-name=${clientName}`);
+  const conn = new WebTransportType(`${serverUri}/waygate?access_token=${token}&termination-type=server&client-name=${clientName}`);
   return wrapWebTransport(conn);
 }
 
